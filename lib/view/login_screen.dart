@@ -20,7 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         isLoading = true;
       });
-      final response = await googleService.googleLogin();
+      final response = await googleService.login();
       if (response != null && mounted) {
         Navigator.of(context).push(
           MaterialPageRoute(
@@ -59,9 +59,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           setState(() {
                             isLoading = true;
                           });
-                          final response = await googleService.googleLogin();
+                          final response = await googleService.login();
                           if (response != null && mounted) {
-                            Navigator.of(context).push(
+                            Navigator.of(context).pushReplacement(
                               MaterialPageRoute(
                                 builder: (context) => HomeScreen(googleService: googleService),
                               ),

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:gmail_inbox_template/google_service.dart';
 import 'package:gmail_inbox_template/email_model.dart';
+import 'package:gmail_inbox_template/view/details_screen.dart';
+
+import 'login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final GoogleService googleService;
@@ -41,7 +44,11 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () async {
               await googleService.logout();
               if (!mounted) return;
-              Navigator.of(context).pop();
+              Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => const LoginScreen(),
+                  ),
+                  (route) => false);
             },
             icon: const Icon(Icons.logout),
           ),
@@ -100,73 +107,69 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemBuilder: (context, index) {
                       final message = messages![index];
                       return Padding(
-                        padding: const EdgeInsets.all(4.0),
-                        child: Card(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .secondaryContainer
-                                .withBlue(78)
-                                .withOpacity(0.5),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Remetente: ',
-                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                              fontWeight: FontWeight.w900,
-                                            ),
-                                      ),
-                                      Flexible(
-                                        child: Text(
-                                          message.sender,
-                                          style: Theme.of(context).textTheme.bodySmall,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Assunto: ',
-                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                              fontWeight: FontWeight.w900,
-                                            ),
-                                      ),
-                                      Flexible(
-                                        child: Text(
-                                          message.subject,
-                                          style: Theme.of(context).textTheme.bodySmall,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Corpo: ',
-                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                          fontWeight: FontWeight.w900,
-                                        ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    message.body.trim(),
-                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                          fontSize: 10,
-                                        ),
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: message.body.length > 1000 ? 40 : 20,
-                                  ),
-                                ],
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => DetailsScreen(
+                                  googleService: googleService,
+                                  emailId: message.id,
+                                ),
                               ),
-                            )),
+                            );
+                          },
+                          child: Card(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .secondaryContainer
+                                  .withBlue(78)
+                                  .withOpacity(0.5),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Remetente: ',
+                                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                fontWeight: FontWeight.w900,
+                                              ),
+                                        ),
+                                        Flexible(
+                                          child: Text(
+                                            message.sender,
+                                            style: Theme.of(context).textTheme.bodySmall,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Assunto: ',
+                                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                fontWeight: FontWeight.w900,
+                                              ),
+                                        ),
+                                        Flexible(
+                                          child: Text(
+                                            message.subject,
+                                            style: Theme.of(context).textTheme.bodySmall,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              )),
+                        ),
                       );
                     },
                   ),

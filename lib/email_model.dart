@@ -4,11 +4,13 @@ import 'package:googleapis/gmail/v1.dart';
 import 'package:intl/intl.dart';
 
 class EmailModel {
+  String id;
   String sender;
   String subject;
   String body;
 
   EmailModel({
+    required this.id,
     required this.sender,
     required this.subject,
     required this.body,
@@ -16,11 +18,24 @@ class EmailModel {
 
   factory EmailModel.fromMessage(Message message) {
     return EmailModel(
+      id: message.id ?? '',
       sender: _getSender(message),
       subject: _getSubject(message),
       body: _getBodyEmail(message),
     );
   }
+
+  factory EmailModel.fromMessageMetadata(Message message) {
+    return EmailModel(
+      id: message.id ?? '',
+      sender: _getSenderMetadata(message),
+      subject: _getSubject(message),
+      body: _getBodyEmail(message),
+    );
+  }
+
+  get isEmpty =>
+      sender.isEmpty && subject.isEmpty && body == 'Email não encontrado, tente novamente.';
 
   static String _getBody(List<MessagePart> partes) {
     final List<String> allParts = [];
@@ -110,5 +125,57 @@ class EmailModel {
     }
 
     return subject;
+  }
+
+  static String _getBodyEmailMetadata(Message message) {
+    final parts = message.payload?.headers;
+    if (parts == null) {
+      log('parts is null');
+      return 'Corpo não encontrado';
+    }
+
+    return _getBodyMetadata(parts);
+  }
+
+  static String _getSubjectMetadata(Message message) {
+    final headers = message.payload?.headers;
+    if (headers == null) {
+      log('Headers is null');
+      return 'Assunto não encontrado';
+    }
+
+    String subject = '??';
+
+    for (var header in headers) {
+      if (header.name?.toLowerCase() == 'Subject') {
+        subject = header.value ?? 'Assunto vazio';
+      }
+    }
+
+    return subject;
+  }
+
+  static String _getSenderMetadata(Message message) {
+    final headers = message.payload?.headers;
+    if (headers == null) {
+      log('Headers is null');
+      return 'Remetente não encontrado';
+    }
+
+    String sender = '??';
+
+    for (var header in headers) {
+      if (header.name?.toLowerCase() == 'from') {
+        RegExp regex = RegExp(r'\"(.*)\"');
+        Match? match = regex.firstMatch(header.value ?? '');
+        sender = match?.group(1) ?? 'Remetente vazio';
+      }
+    }
+
+    return sender == 'Remetente vazio' ? _getSender(message) : sender;
+  }
+
+  static String _getBodyMetadata(List<MessagePartHeader>? headers) {
+    return '---';
   }
 }

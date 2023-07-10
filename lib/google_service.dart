@@ -10,7 +10,7 @@ class GoogleService {
   final GoogleSignIn googleSignin = GoogleSignIn(scopes: [GmailApi.gmailReadonlyScope]);
   GoogleSignInAccount? currentUser;
 
-  Future<GoogleSignInAccount?> googleLogin() async {
+  Future<GoogleSignInAccount?> login() async {
     if (await googleSignin.isSignedIn()) {
       log('User signed in');
       currentUser = await googleSignin.signInSilently();
@@ -65,12 +65,17 @@ class GoogleService {
       final messages = response.messages;
 
       if (messages != null && messages.isNotEmpty) {
-        final messagesWithBody = await Future.wait(messages.sublist(0, 10).map((message) async {
-          final messageInfo = await gmailApi.users.messages.get('me', message.id!, format: 'full');
+        final fechetMessages = messages.length > 30 ? messages.sublist(0, 30) : messages;
+        final messagesWithBody = await Future.wait(fechetMessages.map((message) async {
+          final messageInfo = await gmailApi.users.messages.get(
+            'me',
+            message.id!,
+            format: 'metadata',
+          );
           return messageInfo;
         }));
         // lookMessageInfos(messagesWithBody);
-        return messagesWithBody.map((message) => EmailModel.fromMessage(message)).toList();
+        return messagesWithBody.map((message) => EmailModel.fromMessageMetadata(message)).toList();
       } else {
         log('No messages found.');
       }
@@ -80,7 +85,23 @@ class GoogleService {
     return null;
   }
 
-  void lookMessageInfos(List<Message> mensagens) {
+  Future<EmailModel>? getEmail(String emailId) async {
+    try {
+      var httpClient = await googleSignin.authenticatedClient();
+      assert(httpClient != null, 'http client is null');
+      final gmailApi = GmailApi(httpClient!);
+      final message = await gmailApi.users.messages.get(
+        'me',
+        emailId,
+        format: 'full',
+      );
+      return EmailModel.fromMessage(message);
+    } catch (e) {
+      throw 'Erro ao obter a caixa de entrada do Gmail: $e';
+    }
+  }
+
+  void _lookMessageInfos(List<Message> mensagens) {
     for (var mensagem in mensagens) {
       log('Mensagem: ${mensagem.toJson()}}');
     }
