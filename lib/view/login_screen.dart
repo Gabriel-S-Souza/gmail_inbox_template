@@ -20,7 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         isLoading = true;
       });
-      final response = await googleService.login();
+      final response = await googleService.signInSilently();
       if (response != null && mounted) {
         Navigator.of(context).push(
           MaterialPageRoute(
